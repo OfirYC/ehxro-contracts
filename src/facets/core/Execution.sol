@@ -6,6 +6,7 @@ import "../../storage/core/Core.sol";
 import "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../Types.sol";
+import "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @title CoreFacet
@@ -29,13 +30,48 @@ contract CoreFacet is AccessControlled {
      * Execute Hxro Payload
      * @param encodedInboundPayload - The (encoded) inbound payload to execute
      */
-    function executeHxroPayload(bytes calldata encodedInboundPayload, ) external {
+    function executeHxroPayload(
+        bytes calldata encodedInboundPayload,
+        bytes calldata sig
+    ) external {
         InboundPayload memory inboundPayload = abi.decode(
             encodedInboundPayload,
             (InboundPayload)
         );
 
-        IERC20(inboundPayload.token).safeTransferFrom(msg.sender, address(this),)
+        bytes memory hxroPayload = bytes.concat(
+            inboundPayload.messageHash,
+            sig
+        );
+
+        _execBridgeOperation(
+            inboundPayload.token,
+            inboundPayload.amount,
+            hxroPayload
+        );
+    }
+
+    // ===============
+    //    INTERNAL
+    // ===============
+    function _execBridgeOperation(
+        address token,
+        uint256 amount,
+        bytes memory payload
+    ) internal {
+        CoreStorage storage coreStorage = CoreStorageLib.retreive();
+
+        bytes4 bridgeAdapterSel = coreStorage.tokenBridgeProviders[token];
+
+        if (bridgeAdapterSel == bytes4(0)) revert TokenUnsupported();
+
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+
+        (bool success, ) = address(this).delegatecall(
+            abi.encodeWithSelector(bridgeAdapterSel, token, amount, payload)
+        );
+
+        if (!success) revert BridgeFailed();
     }
 
     // =======================

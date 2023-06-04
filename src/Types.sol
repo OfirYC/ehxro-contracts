@@ -7,3 +7,7 @@ struct InboundPayload {
     uint256 amount;
     bytes messageHash;
 }
+
+error TokenUnsupported();
+
+error BridgeFailed();
