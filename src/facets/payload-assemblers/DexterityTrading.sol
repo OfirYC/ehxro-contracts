@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
+import "../../types/DexterityTrading.sol";
 
 /**
  * @title Dexterity Trading Payload Facet
@@ -8,8 +9,33 @@ pragma solidity ^0.8.18;
  */
 
 contract DexterityTradingPayloadFacet {
+    // ================
+    //     METHODS
+    // ================
+    /**
+     * Build a deposit payload
+     */
+    function buildDepositPayload()
+        external
+        pure
+        returns (bytes memory depositPayload)
+    {}
+
     /**
      * Build a New Order payload
      */
-    function buildNewOrderMessage() external {}
+    function buildNewOrderMessage()
+        external
+        pure
+        returns (bytes memory newOrderPayload)
+    {}
+
+    /**
+     * Build a Cancel Order payload
+     */
+    function buildCancelOrderPayload()
+        external
+        pure
+        returns (bytes memory cancelOrderPayload)
+    {}
 }

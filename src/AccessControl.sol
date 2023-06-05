@@ -13,7 +13,7 @@ contract AccessControlled {
      * Only allow owner of the diamond to access
      */
     modifier onlyOwner() {
-        require(msg.sender == LibDiamond.contractOwner(), "ERR: Only Owner");
+        require(msg.sender == LibDiamond.contractOwner(), "Only Owner");
         _;
     }
 

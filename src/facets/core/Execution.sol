@@ -5,7 +5,7 @@ import "../../AccessControl.sol";
 import "../../storage/core/Core.sol";
 import "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../Types.sol";
+import "../../types/Main.sol";
 
 /**
  * @title CoreFacet
@@ -29,13 +29,13 @@ contract CoreFacet is AccessControlled {
      * Execute Hxro Payload
      * @param encodedInboundPayload - The (encoded) inbound payload to execute
      */
-    function executeHxroPayload(bytes calldata encodedInboundPayload, ) external {
+    function executeHxroPayload(bytes calldata encodedInboundPayload) external {
         InboundPayload memory inboundPayload = abi.decode(
             encodedInboundPayload,
             (InboundPayload)
         );
 
-        IERC20(inboundPayload.token).safeTransferFrom(msg.sender, address(this),)
+        // IERC20(inboundPayload.token).safeTransferFrom(msg.sender, address(this),)
     }
 
     // =======================
