@@ -9,6 +9,10 @@ struct DexterityTradingStorage {
      * Map user address => nonce
      */
     mapping(address => uint64) nonces;
+    /**
+     * Identifier of the Dexterity Trading processor on Solana
+     */
+    bytes8 dexterityProcessorSelector;
 }
 
 /**

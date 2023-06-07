@@ -49,3 +49,27 @@ struct NewOrderParams {
     uint256 match_limit;
     Fractional limit_price;
 }
+
+// Accounts required
+struct NewOrderAccounts {
+    bytes32 user;
+    bytes32 trader_risk_group;
+    bytes32 market_product_group;
+    bytes32 product;
+    bytes32 aaob_program;
+    bytes32 orderbook;
+    bytes32 market_signer;
+    bytes32 event_queue;
+    bytes32 bids;
+    bytes32 asks;
+    bytes32 system_program;
+    bytes32 fee_model_program;
+    bytes32 fee_model_configuration_acct;
+    bytes32 trader_fee_state_acct;
+    bytes32 fee_output_register;
+    bytes32 risk_engine_program;
+    bytes32 risk_model_configuration_acct;
+    bytes32 risk_output_register;
+    bytes32 trader_risk_state_acct;
+    bytes32 risk_and_fee_signer;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ehxro-contracts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/OfirYC/ehxro-contracts",
+  "license": "MIT",
+  "dependencies": {
+    "@hxronetwork/dexterity-ts": "^1.5.30"
+  }
+}

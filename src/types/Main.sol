@@ -10,8 +10,11 @@ struct InboundPayload {
     bytes messageHash;
 }
 
-struct AccountInfo {
-    string pubKey;
-    bool is_signer;
-    bool is_writeable;
+enum SupportedBridges {
+    WORMHOLE
+}
+
+struct BridgeResult {
+    SupportedBridges id;
+    bytes res;
 }

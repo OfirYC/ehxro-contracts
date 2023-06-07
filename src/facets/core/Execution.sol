@@ -27,41 +27,86 @@ contract CoreFacet is AccessControlled {
     /**
      * @notice
      * Execute Hxro Payload
-     * @param encodedInboundPayload - The (encoded) inbound payload to execute
+     * @param inboundPayload - The inbound payload to execute
+     * @param sig - The signature of the end user
+     * @return bridgeRes - The result passed from the bridge, and the bridge identifier
      */
-    function executeHxroPayload(bytes calldata encodedInboundPayload) external {
-        InboundPayload memory inboundPayload = abi.decode(
-            encodedInboundPayload,
-            (InboundPayload)
+    function executeHxroPayloadWithTokens(
+        InboundPayload calldata inboundPayload,
+        bytes calldata sig
+    ) external returns (BridgeResult memory bridgeRes) {
+        IERC20(inboundPayload.token).safeTransferFrom(
+            msg.sender,
+            address(this),
+            inboundPayload.amount
         );
 
-        // IERC20(inboundPayload.token).safeTransferFrom(msg.sender, address(this),)
+        BridgeProvider memory bridgeProvider = CoreStorageLib
+            .retreive()
+            .tokenBridgeProviders[inboundPayload.token];
+
+        require(
+            bridgeProvider.transferTokensAndPayloadSel != bytes4(0),
+            "Token Unsupported"
+        );
+
+        // Bridge adapters sit on our diamond,
+        // we delegatecall to the selector (delegatecall on ourselves to retain msg.sender context)
+        (bool success, bytes memory res) = address(this).delegatecall(
+            abi.encodeWithSelector(
+                bridgeProvider.transferTokensAndPayloadSel,
+                inboundPayload.token,
+                inboundPayload.amount,
+                bytes.concat(inboundPayload.messageHash, sig) // HXRO payload convention always includes the sig
+            )
+        );
+
+        require(success, "HXRO: Failed To Bridge");
+
+        bridgeRes = abi.decode(res, (BridgeResult));
     }
 
     // =======================
     //     CLASSIFICATIONS
     // =======================
     /**
-     * Set a token's bridge selector
+     * Add a token's bridge selector
      * @param token - The token's address
-     * @param bridgeSel - The function selector which the bridge adapter should call to bridge
+     * @param bridgeProvider - The bridge provider config
      */
-    function setTokenBridge(
+    function addTokenBridge(
         address token,
-        bytes4 bridgeSel
+        BridgeProvider calldata bridgeProvider
     ) external onlyOwner {
         CoreStorage storage coreStorage = CoreStorageLib.retreive();
 
-        address[] memory supportedTokens = coreStorage.allSupportedTokens; // save gas by copying to memory once
-        bool shouldPush = true;
-        for (uint256 i; i < supportedTokens.length; i++)
-            if (supportedTokens[i] == token) {
-                shouldPush = false;
-                break;
-            }
+        require(
+            coreStorage.tokenBridgeProviders[token].transferPayloadSel ==
+                bytes4(0),
+            "Bridge Provider Already Added. Use updateTokenBridge"
+        );
 
-        if (shouldPush) coreStorage.allSupportedTokens.push(token);
+        coreStorage.tokenBridgeProviders[token] = bridgeProvider;
+        coreStorage.allSupportedTokens.push(token);
+    }
 
-        coreStorage.tokenBridgeProviders[token] = bridgeSel;
+    /**
+     * Update a token's bridge selector
+     * @param token - The token's address
+     * @param bridgeProvider - The bridge provider config
+     */
+    function updateTokenBridge(
+        address token,
+        BridgeProvider calldata bridgeProvider
+    ) external onlyOwner {
+        CoreStorage storage coreStorage = CoreStorageLib.retreive();
+
+        require(
+            coreStorage.tokenBridgeProviders[token].transferPayloadSel !=
+                bytes4(0),
+            "Cannot Update Bridge Provider - Non Existant"
+        );
+
+        coreStorage.tokenBridgeProviders[token] = bridgeProvider;
     }
 }

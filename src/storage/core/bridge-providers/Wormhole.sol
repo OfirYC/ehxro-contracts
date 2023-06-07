@@ -13,6 +13,10 @@ struct WormholeAdapterStorage {
      * Address of the wormhole token bridge
      */
     address tokenBridge;
+    /**
+     * Solana chain ID
+     */
+    uint16 solanaChainId;
 }
 
 /**
