@@ -9,12 +9,12 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 
 import "forge-std/Script.sol";
-import "../src/Diamond.sol";
-import "../src/facets/diamond-base/DiamondCutFacet.sol";
-import "../src/facets/diamond-base/DiamondLoupeFacet.sol";
-import "../src/facets/diamond-base/OwnershipFacet.sol";
-import "../src/upgradeInitializers/DiamondInit.sol";
-import "../test/HelperContract.sol";
+import "../src/diamond/Diamond.sol";
+import "../src/diamond/facets/diamond-base/DiamondCutFacet.sol";
+import "../src/diamond/facets/diamond-base/DiamondLoupeFacet.sol";
+import "../src/diamond/facets/diamond-base/OwnershipFacet.sol";
+import "../src/diamond/upgradeInitializers/DiamondInit.sol";
+import "../test/diamond/HelperContract.sol";
 
 contract DeployScript is Script, HelperContract {
     function run() external {

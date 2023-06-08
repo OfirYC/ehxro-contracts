@@ -3,6 +3,8 @@
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
+import {IERC20} from "../../interfaces/IERC20.sol";
+import {IBridgeProvider} from "../../interfaces/IBridgeProvider.sol";
 
 struct BridgeProvider {
     /**
@@ -23,11 +25,15 @@ struct CoreStorage {
     /**
      * All supported tokens
      */
-    address[] allSupportedTokens;
+    IERC20[] allSupportedTokens;
     /**
-     * Mapping local supported token addresses => Corresponding supporting bridge's adapter func selector
+     * Mapping local supported token addresses => Corresponding supporting bridge's adapter
      */
-    mapping(address => BridgeProvider) tokenBridgeProviders;
+    mapping(IERC20 => IBridgeProvider) tokenBridgeProviders;
+    /**
+     * Map user address => nonce
+     */
+    mapping(address => uint256) nonces;
 }
 
 /**

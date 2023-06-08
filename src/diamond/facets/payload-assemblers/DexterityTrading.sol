@@ -41,12 +41,12 @@ contract DexterityTradingPayloadFacet {
         uint256 userNonce = dexterityStorage.nonces[account];
 
         bytes memory msgHash = bytes.concat(
-            abi.encode(userNonce),
             abi.encode(context),
-            abi.encode(newOrderParams)
+            abi.encode(newOrderParams),
+            abi.encode(userNonce)
         );
 
-        newOrderPayload = InboundPayload(address(0), 0, msgHash);
+        newOrderPayload = InboundPayload(IERC20(address(0)), 0, msgHash);
     }
 
     /**
