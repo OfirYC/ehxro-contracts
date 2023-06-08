@@ -17,6 +17,17 @@ struct BridgeProvider {
     bytes4 transferPayloadSel;
 }
 
+struct BridgeProvider {
+    /**
+     * Selector of the token + payload bridge function of this provider
+     */
+    bytes4 transferTokensAndPayloadSel;
+    /**
+     * Selector of the *only* payload bridge function of this provider
+     */
+    bytes4 transferPayloadSel;
+}
+
 struct CoreStorage {
     /**
      * Address of the solana eHXRO program
@@ -29,11 +40,15 @@ struct CoreStorage {
     /**
      * Mapping local supported token addresses => Corresponding supporting bridge's adapter
      */
+<<<<<<< HEAD:src/diamond/storage/core/Core.sol
     mapping(IERC20 => IBridgeProvider) tokenBridgeProviders;
     /**
      * Map user address => nonce
      */
     mapping(address => uint256) nonces;
+=======
+    mapping(address => BridgeProvider) tokenBridgeProviders;
+>>>>>>> 9731d40 (:construction: Mid work):src/storage/core/Core.sol
 }
 
 /**
