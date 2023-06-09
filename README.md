@@ -11,7 +11,7 @@ Install Foundry on your machine if u havent yet
 https://book.getfoundry.sh/getting-started/installation
 
 
-``forge install```
+``forge install`` - Install submodule deps
 
 ``forge build`` - Compile
 
