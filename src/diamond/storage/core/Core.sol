@@ -23,6 +23,10 @@ struct CoreStorage {
      * Map user address => nonce
      */
     mapping(address => uint256) nonces;
+    /**
+     * Map bytes32 solana token program addresses => ERC20 token addreses
+     */
+    mapping(bytes32 => address) solanaToLocalTokens;
 }
 
 /**

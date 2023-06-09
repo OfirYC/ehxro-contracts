@@ -73,3 +73,40 @@ struct NewOrderAccounts {
     bytes32 trader_risk_state_acct;
     bytes32 risk_and_fee_signer;
 }
+struct CancelOrderAccounts {
+    bytes32 user;
+    bytes32 trader_risk_group;
+    bytes32 market_product_group;
+    bytes32 product;
+    bytes32 aaob_program;
+    bytes32 orderbook;
+    bytes32 market_signer;
+    bytes32 event_queue;
+    bytes32 bids;
+    bytes32 asks;
+    bytes32 risk_engine_program;
+    bytes32 risk_model_configuration_acct;
+    bytes32 risk_output_register;
+    bytes32 trader_risk_state_acct;
+    bytes32 risk_and_fee_signer;
+}
+
+struct CancelOrderParams {
+    uint128 order_id;
+    bool no_err;
+}
+
+struct DepositFundsAccounts {
+    bytes32 token_program;
+    bytes32 user;
+    bytes32 user_token_account;
+    bytes32 trader_risk_group;
+    bytes32 market_product_group;
+    bytes32 market_product_group_vault;
+    bytes32 capital_limits;
+    bytes32 whitelist_ata_acct;
+}
+
+struct DepositFundsParams {
+    Fractional quantity;
+}

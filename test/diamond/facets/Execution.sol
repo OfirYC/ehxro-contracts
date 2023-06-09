@@ -141,10 +141,12 @@ contract ExecutionTest is DiamondTest {
 
         // We do not have enough tokens
         vm.expectRevert();
+
         CoreFacet(address(diamond)).executeHxroPayloadWithTokens(
             InboundPayload(TOKEN_TO_TEST_WITH, tokenAmount, payload),
             abi.encodePacked(r, s, v)
         );
+
 
         bytes memory expectedPayload = bytes.concat(
             payload,
@@ -213,4 +215,3 @@ contract ExecutionTest is DiamondTest {
         vm.assume(key > 10 && key < MAX_PRIV_KEY);
     }
 }
-
