@@ -3,18 +3,19 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/Script.sol";
-import "../src/diamond/Diamond.sol";
-import "../../src/diamond/interfaces/IDiamond.sol";
-import "../../src/diamond/interfaces/IDiamondCut.sol";
-import "../../src/diamond/interfaces/IDiamondLoupe.sol";
-import "../src/diamond/interfaces/IERC165.sol";
-import "../../src/diamond/interfaces/IERC173.sol";
-import "../src/diamond/facets/diamond-base/DiamondCutFacet.sol";
-import "../src/diamond/facets/diamond-base/DiamondLoupeFacet.sol";
-import "../src/diamond/facets/diamond-base/OwnershipFacet.sol";
-import "../src/diamond/facets/core/Execution.sol";
-import "../src/diamond/facets/core/StorageManager.sol";
-import "../test/diamond/HelperContract.sol";
+import "src/diamond/Diamond.sol";
+import "src/diamond/interfaces/IDiamond.sol";
+import "src/diamond/interfaces/IDiamondCut.sol";
+import "src/diamond/interfaces/IDiamondLoupe.sol";
+import "src/diamond/interfaces/IERC165.sol";
+import "src/diamond/interfaces/IERC173.sol";
+import "src/diamond/facets/diamond-base/DiamondCutFacet.sol";
+import "src/diamond/facets/diamond-base/DiamondLoupeFacet.sol";
+import "src/diamond/facets/diamond-base/OwnershipFacet.sol";
+import "src/diamond/facets/core/Execution.sol";
+import "src/diamond/facets/core/StorageManager.sol";
+import "test/diamond/HelperContract.sol";
+import "src/diamond/upgradeInitializers/DiamondInit.sol";
 
 contract DeployScript is Script, HelperContract {
     function run() external {

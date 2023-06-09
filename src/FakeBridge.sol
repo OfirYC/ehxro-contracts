@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-import "./diamond/interfaces/IBridgeProvider.sol";
-import "./diamond/facets/core/StorageManager.sol";
+import "./interfaces/IBridgeProvider.sol";
+import {StorageManagerFacet} from "./diamond/facets/core/StorageManager.sol";
 
 /**
  * A very much real bridge provider

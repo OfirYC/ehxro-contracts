@@ -2,8 +2,8 @@
 pragma solidity ^0.8.18;
 import "../../AccessControl.sol";
 import "../../storage/core/Core.sol";
-import "../../interfaces/IERC20.sol";
-import "../../libraries/SafeERC20.sol";
+import "src/interfaces/IERC20.sol";
+import "src/libs/SafeERC20.sol";
 import "../../types/Main.sol";
 import {ECDSA} from "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "forge-std/console.sol";

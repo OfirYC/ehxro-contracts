@@ -3,7 +3,7 @@
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-import "../types/Main.sol";
+import "src/diamond/types/Main.sol";
 import "./IERC20.sol";
 
 interface IBridgeProvider {

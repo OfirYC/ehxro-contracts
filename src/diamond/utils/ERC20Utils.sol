@@ -4,8 +4,8 @@ pragma solidity ^0.8.18;
  * Utilities for ERC20 internal functions
  */
 
-import {SafeERC20} from "../libraries/SafeERC20.sol";
-import {IERC20} from "../interfaces/IERC20.sol";
+import {SafeERC20} from "../../libs/SafeERC20.sol";
+import {IERC20} from "../../interfaces/IERC20.sol";
 
 library ERC20Utils {
     using SafeERC20 for IERC20;
