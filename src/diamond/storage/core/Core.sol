@@ -27,6 +27,9 @@ struct CoreStorage {
      * Map bytes32 solana token program addresses => ERC20 token addreses
      */
     mapping(bytes32 => address) solanaToLocalTokens;
+    /**
+     * Chainlink oracle address
+     */
 }
 
 /**
