@@ -13,3 +13,6 @@
 [submodule "lib/chainlink"]
 	path = lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
+[submodule "lib/swap-bridge"]
+	path = lib/swap-bridge
+	url = https://github.com/mayan-finance/swap-bridge
