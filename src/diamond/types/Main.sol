@@ -11,13 +11,13 @@ struct InboundPayload {
     bytes messageHash;
 }
 
-enum SupportedBridges {
+enum Bridge {
     WORMHOLE,
     VERY_REAL_BRIDGE
 }
 
 struct BridgeResult {
-    SupportedBridges id;
+    Bridge id;
     bytes res;
 }
 

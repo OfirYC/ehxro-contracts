@@ -20,6 +20,10 @@ struct CoreStorage {
      */
     mapping(IERC20 => IBridgeProvider) tokenBridgeProviders;
     /**
+     * The address of the bridge provider for bridging plain payload
+     */
+    address plainBridgeProvider;
+    /**
      * Map user address => nonce
      */
     mapping(address => uint256) nonces;
@@ -30,6 +34,7 @@ struct CoreStorage {
     /**
      * Chainlink oracle address
      */
+    address dataProvider;
 }
 
 /**

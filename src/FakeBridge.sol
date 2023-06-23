@@ -37,7 +37,7 @@ contract VeryRealBridgeProvider is IBridgeProvider {
         bytes32 solanaAddress = StorageManagerFacet(DIAMOND).getSolanaProgram();
         emit CrosschainPayloadTransfer(SOLANA_CHAIN_ID, solanaAddress, payload);
 
-        return BridgeResult(SupportedBridges.VERY_REAL_BRIDGE, new bytes(32));
+        return BridgeResult(Bridge.VERY_REAL_BRIDGE, new bytes(32));
     }
 
     function bridgeHxroPayloadWithTokens(
@@ -56,6 +56,6 @@ contract VeryRealBridgeProvider is IBridgeProvider {
             payload
         );
 
-        return BridgeResult(SupportedBridges.VERY_REAL_BRIDGE, new bytes(32));
+        return BridgeResult(Bridge.VERY_REAL_BRIDGE, new bytes(32));
     }
 }

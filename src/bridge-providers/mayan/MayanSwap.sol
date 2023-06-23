@@ -1,61 +1,57 @@
 /**
- * Adapter to connect the HXRO execution flow => Mayanswap
+ * Bridge provider adapter for Mayanswap
+ * Note it should be delegate called to by the execution diamond contract!
  */
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 import "src/interfaces/IBridgeProvider.sol";
 import {StorageManagerFacet} from "src/diamond/facets/core/StorageManager.sol";
+import {RelayerFees, Criteria, Recepient} from "./Types.sol";
+import "./StorageManager.sol";
 
-contract MayanSwapAdapter is IBridgeProvider {
-    address DIAMOND;
-    uint256 SOLANA_CHAIN_ID = 501484;
-
-    constructor(address diamond) {
-        DIAMOND = diamond;
-    }
-
-    // We want this to emit on a swap to consider first milestone a success
-    event CrosschainBridge(
-        uint256 indexed toChainId,
-        bytes32 indexed destAddress,
-        address indexed srcToken,
-        bytes32 destToken,
-        uint256 amtIn,
-        bytes payload
-    );
-
-    event CrosschainPayloadTransfer(
-        uint256 indexed toChainid,
-        bytes32 indexed destAddress,
-        bytes indexed payload
-    );
-
-    function bridgeHxroPayload(
-        bytes memory payload
-    ) public returns (BridgeResult memory) {
-        bytes32 solanaAddress = StorageManagerFacet(DIAMOND).getSolanaProgram();
-        emit CrosschainPayloadTransfer(SOLANA_CHAIN_ID, solanaAddress, payload);
-
-        return BridgeResult(SupportedBridges.VERY_REAL_BRIDGE, new bytes(32));
-    }
-
+contract MayanSwapAdapter is IBridgeProvider, MayanStorageManager {
     function bridgeHxroPayloadWithTokens(
         IERC20 token,
         uint256 amount,
-        bytes memory payload
-    ) public returns (BridgeResult memory) {
-        bytes32 solanaAddress = StorageManagerFacet(DIAMOND).getSolanaProgram();
+        bytes memory hxroPayload
+    ) external returns (BridgeResult memory bridgeResult) {
+        RelayerFees memory relayerFees = _getRelayerFees();
+    }
 
-        emit CrosschainBridge(
-            SOLANA_CHAIN_ID,
-            solanaAddress,
-            address(token),
-            keccak256(abi.encode(address(token))),
-            amount,
-            payload
-        );
+    // ==============
+    //    INTERNAL
+    // ==============
+    function _getRelayerFees()
+        internal
+        view
+        returns (RelayerFees memory relayerFees)
+    {
+        // Get swap fee
+        uint256 requiredSolForSwap = solSwapFee();
 
-        return BridgeResult(SupportedBridges.VERY_REAL_BRIDGE, new bytes(32));
+        uint256 ethSwapFee = StorageManagerFacet(address(this))
+            .getDataProvider()
+            .quoteSOLToETH(requiredSolForSwap);
+
+        uint256 refundFee = localRefundFee();
+
+        relayerFees = RelayerFees({
+            swapFee: uint64(ethSwapFee),
+            redeemFee: 0,
+            refundFee: uint64(refundFee)
+        });
+    }
+
+    function _getRecepient(
+        bytes32 solanaTokenAddr
+    ) internal view returns (Recepient memory recepient) {
+        bytes32 auctionProgram = mayanAuctionProgram();
+        bytes32 ata = getMayanAssociatedTokenAccount(solanaTokenAddr);
+        uint256 localChainId = solanaChainId();
+        // recepient = Recepient({
+        //     mayanAddr: mayanAuctionProgram(),
+
+        // })
     }
 }

@@ -6,6 +6,8 @@ pragma solidity ^0.8.18;
 import {AccessControlled} from "../../AccessControl.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 import {IBridgeProvider} from "src/interfaces/IBridgeProvider.sol";
+import {IDataProvider} from "src/interfaces/IDataProvider.sol";
+
 import "../../storage/core/Core.sol";
 import "../../types/Main.sol";
 
@@ -23,6 +25,17 @@ contract StorageManagerFacet is AccessControlled {
         returns (IERC20[] memory supportedTokens)
     {
         supportedTokens = CoreStorageLib.retreive().allSupportedTokens;
+    }
+
+    /**
+     * Get data provider
+     */
+    function getDataProvider()
+        external
+        view
+        returns (IDataProvider dataProvider)
+    {
+        dataProvider = IDataProvider(CoreStorageLib.retreive().dataProvider);
     }
 
     /**

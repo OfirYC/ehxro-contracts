@@ -7,9 +7,9 @@ import "src/diamond/types/Main.sol";
 import "./IERC20.sol";
 
 interface IBridgeProvider {
-    function bridgeHxroPayload(
-        bytes memory hxroPayload
-    ) external returns (BridgeResult memory);
+    // function bridgeHxroPayload(
+    //     bytes memory hxroPayload
+    // ) external returns (BridgeResult memory);
 
     function bridgeHxroPayloadWithTokens(
         IERC20 token,
