@@ -16,3 +16,5 @@
 [submodule "lib/swap-bridge"]
 	path = lib/swap-bridge
 	url = https://github.com/mayan-finance/swap-bridge
+[submodule "/Users/ofirsmolinsky/Desktop/ehxro-contracts/lib/swap-bridge"]
+	branch = dev
