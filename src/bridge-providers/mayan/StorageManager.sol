@@ -24,7 +24,7 @@ contract MayanStorageManager is AccessControlled {
     // ==============
     //    GETTERS
     // ==============
-    function mayanswap() external view returns (address mayanswapBridge) {
+    function mayanswap() public view returns (address mayanswapBridge) {
         mayanswapBridge = MayanSwapStorageLib.mayanswap();
     }
 

@@ -9,6 +9,7 @@ import "src/interfaces/IBridgeProvider.sol";
 import {StorageManagerFacet} from "src/diamond/facets/core/StorageManager.sol";
 import {RelayerFees, Criteria, Recepient} from "./Types.sol";
 import "./StorageManager.sol";
+import {MayanSwap} from "lib/swap-bridge/src/MayanSwap.sol";
 
 contract MayanSwapAdapter is IBridgeProvider, MayanStorageManager {
     function bridgeHxroPayloadWithTokens(
@@ -43,15 +44,32 @@ contract MayanSwapAdapter is IBridgeProvider, MayanStorageManager {
         });
     }
 
-    function _getRecepient(
-        bytes32 solanaTokenAddr
-    ) internal view returns (Recepient memory recepient) {
-        bytes32 auctionProgram = mayanAuctionProgram();
-        bytes32 ata = getMayanAssociatedTokenAccount(solanaTokenAddr);
-        uint256 localChainId = solanaChainId();
-        // recepient = Recepient({
-        //     mayanAddr: mayanAuctionProgram(),
+    function _gerCriteria(
+        uint256 amountIn
+    ) internal view returns (Criteria memory criteria) {
+        uint256 deadline = block.timestamp + 12 hours;
+        uint256 amountOutMin = amountIn - (amountIn / 3);
+        bool unwrap = false; // TODO: Support ETH deposits?
+        uint32 unusedNonce = 0;
 
-        // })
+        criteria = Criteria({
+            transferDeadline: deadline,
+            swapDeadline: deadlined,
+            amountOutMin: uint64(amountOutMin),
+            unwrap: unwrap,
+            nonce: unusedNonce
+        });
     }
+
+    // function _getRecepient(
+    //     bytes32 solanaTokenAddr
+    // ) internal view returns (Recepient memory recepient) {
+    //     bytes32 auctionProgram = mayanAuctionProgram();
+    //     bytes32 ata = getMayanAssociatedTokenAccount(solanaTokenAddr);
+    //     uint16 solChainId = solanaChainId();
+    //     recepient = Recepient({
+    //         mayanAddr: ata,
+
+    //     })
+    // }
 }
