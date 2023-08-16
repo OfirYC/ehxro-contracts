@@ -2,12 +2,13 @@
 pragma solidity ^0.8.18;
 import "./interfaces/IBridgeProvider.sol";
 import {StorageManagerFacet} from "./diamond/facets/core/StorageManager.sol";
+import "forge-std/console.sol";
 
 /**
  * A very much real bridge provider
  */
 
-contract VeryRealBridgeProvider is IBridgeProvider {
+contract VeryRealBridgeProvider is ITokenBridge, IPayloadBridge {
     address DIAMOND;
     uint256 SOLANA_CHAIN_ID = 501484;
 
@@ -31,8 +32,9 @@ contract VeryRealBridgeProvider is IBridgeProvider {
         bytes indexed payload
     );
 
-    function bridgeHxroPayload(
-        bytes memory payload
+    function bridgeHXROPayload(
+        bytes calldata payload,
+        address msgSender
     ) public returns (BridgeResult memory) {
         bytes32 solanaAddress = StorageManagerFacet(DIAMOND).getSolanaProgram();
         emit CrosschainPayloadTransfer(SOLANA_CHAIN_ID, solanaAddress, payload);
@@ -41,17 +43,24 @@ contract VeryRealBridgeProvider is IBridgeProvider {
     }
 
     function bridgeHxroPayloadWithTokens(
-        IERC20 token,
+        bytes32 token,
         uint256 amount,
-        bytes memory payload
+        address /** msgSender */,
+        bytes calldata payload
     ) public returns (BridgeResult memory) {
+        console.log("INside FUnc", DIAMOND);
         bytes32 solanaAddress = StorageManagerFacet(DIAMOND).getSolanaProgram();
+        console.log("Got SOlana address:");
+        console.logBytes32(solanaAddress);
+        address srcToken = StorageManagerFacet(DIAMOND).getSourceToken(token);
+
+        console.log("GOt Src Token", srcToken);
 
         emit CrosschainBridge(
             SOLANA_CHAIN_ID,
             solanaAddress,
-            address(token),
-            keccak256(abi.encode(address(token))),
+            srcToken,
+            token,
             amount,
             payload
         );

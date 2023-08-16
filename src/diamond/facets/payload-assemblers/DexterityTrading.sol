@@ -30,9 +30,9 @@ contract DexterityTradingPayloadFacet {
 
         uint256 userNonce = coreStorage.nonces[account];
 
-        address localToken = coreStorage.solanaToLocalTokens[
-            context.token_program
-        ];
+        address localToken = coreStorage
+            .tokens[context.token_program]
+            .localAddress;
 
         if (localToken == address(0)) revert UnsupportedToken();
 
@@ -48,7 +48,7 @@ contract DexterityTradingPayloadFacet {
             abi.encode(userNonce)
         );
 
-        depositPayload = InboundPayload(IERC20(localToken), amt, msgHash);
+        depositPayload = InboundPayload(context.token_program, amt, msgHash);
     }
 
     /**
@@ -73,7 +73,7 @@ contract DexterityTradingPayloadFacet {
             abi.encode(userNonce)
         );
 
-        newOrderPayload = InboundPayload(IERC20(address(0)), 0, msgHash);
+        newOrderPayload = InboundPayload(bytes32(0), 0, msgHash);
     }
 
     /**
@@ -97,6 +97,6 @@ contract DexterityTradingPayloadFacet {
             abi.encode(userNonce)
         );
 
-        cancelOrderPayload = InboundPayload(IERC20(address(0)), 0, msgHash);
+        cancelOrderPayload = InboundPayload(bytes32(0), 0, msgHash);
     }
 }

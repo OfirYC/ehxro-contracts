@@ -11,7 +11,8 @@ struct Criteria {
     uint64 swapDeadline;
     uint64 amountOutMin;
     bool unwrap;
-    uint32 nonce;
+    uint64 gasDrop;
+    bytes customPayload;
 }
 
 struct Recepient {
@@ -20,4 +21,6 @@ struct Recepient {
     bytes32 auctionAddr;
     bytes32 destAddr;
     uint16 destChainId;
+    bytes32 referrer;
+    bytes32 refundAddr;
 }

@@ -4,7 +4,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 import {IERC20} from "src/interfaces/IERC20.sol";
-import {IBridgeProvider} from "src/interfaces/IBridgeProvider.sol";
+import {ITokenBridge, IPayloadBridge} from "src/interfaces/IBridgeProvider.sol";
+import {IDataProvider} from "src/interfaces/IDataProvider.sol";
+
+// Token data
+struct Token {
+    bytes32 solAddress;
+    address localAddress;
+    ITokenBridge bridgeProvider;
+    
+}
 
 struct CoreStorage {
     /**
@@ -14,27 +23,23 @@ struct CoreStorage {
     /**
      * All supported tokens
      */
-    IERC20[] allSupportedTokens;
+    bytes32[] allSupportedTokens;
     /**
-     * Mapping local supported token addresses => Corresponding supporting bridge's adapter
+     * Mapping supported tokens (SOL Address) => Token data
      */
-    mapping(IERC20 => IBridgeProvider) tokenBridgeProviders;
+    mapping(bytes32 supportedToken => Token tokenData) tokens;
     /**
      * The address of the bridge provider for bridging plain payload
      */
-    address plainBridgeProvider;
+    IPayloadBridge plainBridgeProvider;
     /**
      * Map user address => nonce
      */
     mapping(address => uint256) nonces;
     /**
-     * Map bytes32 solana token program addresses => ERC20 token addreses
-     */
-    mapping(bytes32 => address) solanaToLocalTokens;
-    /**
      * Chainlink oracle address
      */
-    address dataProvider;
+    IDataProvider dataProvider;
 }
 
 /**

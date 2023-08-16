@@ -13,7 +13,11 @@ import "../../../src/FakeBridge.sol";
 contract ExecutionTest is DiamondTest {
     IERC20 TOKEN_TO_TEST_WITH =
         IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
-    IBridgeProvider veryRealBridgeProvider;
+
+    bytes32 SOL_TEST_TOKEN =
+        0xffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeee;
+
+    ITokenBridge veryRealBridgeProvider;
 
     uint256 SOLANA_CHAIN_ID = 501484;
     bytes32 HXRO_SOLANA_PROGRAM =
@@ -29,17 +33,22 @@ contract ExecutionTest is DiamondTest {
         super.setUp();
         // Classify mock bridge provider
         veryRealBridgeProvider = new VeryRealBridgeProvider(address(diamond));
-        StorageManagerFacet(address(diamond)).addTokenBridge(
-            TOKEN_TO_TEST_WITH,
+        StorageManagerFacet(address(diamond)).addToken(
+            address(TOKEN_TO_TEST_WITH),
+            SOL_TEST_TOKEN,
             veryRealBridgeProvider
         );
 
-        StorageManagerFacet(address(diamond)).addTokenBridge(
-            IERC20(address(0)),
+        StorageManagerFacet(address(diamond)).addToken(
+            address(0),
+            bytes32(0),
             veryRealBridgeProvider
         );
 
-        // address(0) == Used by non-token bridge (plain payliad)
+        StorageManagerFacet(address(diamond)).setPayloadBridgeProvider(
+            IPayloadBridge(address(veryRealBridgeProvider))
+        );
+
         StorageManagerFacet(address(diamond)).setHxroSolanaProgram(
             HXRO_SOLANA_PROGRAM
         );
@@ -76,7 +85,7 @@ contract ExecutionTest is DiamondTest {
         // We are not the signer
         vm.expectRevert();
         CoreFacet(address(diamond)).executeHxroPayload(
-            InboundPayload(IERC20(address(0)), 0, payload),
+            payload,
             abi.encodePacked(r, s, v)
         );
 
@@ -95,7 +104,7 @@ contract ExecutionTest is DiamondTest {
         );
 
         CoreFacet(address(diamond)).executeHxroPayload(
-            InboundPayload(IERC20(address(0)), 0, payload),
+           payload,
             abi.encodePacked(r, s, v)
         );
     }
@@ -133,7 +142,7 @@ contract ExecutionTest is DiamondTest {
         // We are not the signer
         vm.expectRevert();
         CoreFacet(address(diamond)).executeHxroPayloadWithTokens(
-            InboundPayload(TOKEN_TO_TEST_WITH, tokenAmount, payload),
+            InboundPayload(SOL_TEST_TOKEN, tokenAmount, payload),
             abi.encodePacked(r, s, v)
         );
 
@@ -142,11 +151,11 @@ contract ExecutionTest is DiamondTest {
         // We do not have enough tokens
         vm.expectRevert();
 
+
         CoreFacet(address(diamond)).executeHxroPayloadWithTokens(
-            InboundPayload(TOKEN_TO_TEST_WITH, tokenAmount, payload),
+            InboundPayload(SOL_TEST_TOKEN, tokenAmount, payload),
             abi.encodePacked(r, s, v)
         );
-
 
         bytes memory expectedPayload = bytes.concat(
             payload,
@@ -168,13 +177,13 @@ contract ExecutionTest is DiamondTest {
             SOLANA_CHAIN_ID,
             HXRO_SOLANA_PROGRAM,
             address(TOKEN_TO_TEST_WITH),
-            keccak256(abi.encode(TOKEN_TO_TEST_WITH)),
+            SOL_TEST_TOKEN,
             tokenAmount,
             expectedPayload
         );
 
         CoreFacet(address(diamond)).executeHxroPayloadWithTokens(
-            InboundPayload(TOKEN_TO_TEST_WITH, tokenAmount, payload),
+            InboundPayload(SOL_TEST_TOKEN, tokenAmount, payload),
             abi.encodePacked(r, s, v)
         );
     }

@@ -33,9 +33,15 @@ contract CoreFacet is AccessControlled {
      * @return bridgeRes - The result passed from the bridge, and the bridge identifier
      */
     function executeHxroPayloadWithTokens(
-        InboundPayload memory inboundPayload,
+        InboundPayload calldata inboundPayload,
         bytes calldata sig
     ) external returns (BridgeResult memory bridgeRes) {
+        Token memory tokenData = CoreStorageLib.retreive().tokens[
+            inboundPayload.solToken
+        ];
+
+        if (tokenData.localAddress == address(0)) revert UnsupportedToken();
+
         bytes memory messageHash = inboundPayload.messageHash;
 
         if (keccak256(messageHash).recover(sig) != msg.sender)
@@ -51,23 +57,32 @@ contract CoreFacet is AccessControlled {
 
         if (nonce != coreStorage.nonces[msg.sender]) revert InvalidNonce();
 
-        IBridgeProvider bridgeProvider = coreStorage.tokenBridgeProviders[
-            inboundPayload.token
-        ];
+        if (address(tokenData.bridgeProvider) == address(0))
+            revert UnsupportedToken();
 
-        if (address(bridgeProvider) == address(0)) revert UnsupportedToken();
-
-        IERC20(inboundPayload.token).safeTransferFrom(
+        IERC20(tokenData.localAddress).safeTransferFrom(
             msg.sender,
             address(this),
             inboundPayload.amount
         );
 
-        bridgeRes = bridgeProvider.bridgeHxroPayloadWithTokens(
-            inboundPayload.token,
-            inboundPayload.amount,
-            bytes.concat(inboundPayload.messageHash, sig) // HXRO payload convention always includes the sig
-        );
+        // Token bridge adapters are always delegatecalled to
+        (bool success, bytes memory res) = address(tokenData.bridgeProvider)
+            .delegatecall(
+                abi.encodeCall(
+                    ITokenBridge.bridgeHxroPayloadWithTokens,
+                    (
+                        inboundPayload.solToken,
+                        inboundPayload.amount,
+                        msg.sender,
+                        bytes.concat(inboundPayload.messageHash, sig)
+                    )
+                )
+            );
+
+        if (!success) revert BridgeFailed(res);
+
+        bridgeRes = abi.decode(res, (BridgeResult));
 
         coreStorage.nonces[msg.sender]++;
     }
@@ -75,15 +90,15 @@ contract CoreFacet is AccessControlled {
     /**
      * @notice
      * Execute Hxro Payload
-     * @param inboundPayload - The inbound payload to execute
+     * @param payload - The payload to pass on
      * @param sig - The signature of the end user
      * @return bridgeRes - The result passed from the bridge, and the bridge identifier
      */
     function executeHxroPayload(
-        InboundPayload memory inboundPayload,
+        bytes calldata payload,
         bytes calldata sig
     ) external returns (BridgeResult memory bridgeRes) {
-        bytes memory messageHash = inboundPayload.messageHash;
+        bytes memory messageHash = payload;
 
         if (keccak256(messageHash).recover(sig) != msg.sender)
             revert NotSigOwner();
@@ -98,14 +113,14 @@ contract CoreFacet is AccessControlled {
 
         if (nonce != coreStorage.nonces[msg.sender]) revert InvalidNonce();
 
-        IBridgeProvider bridgeProvider = coreStorage.tokenBridgeProviders[
-            inboundPayload.token
-        ];
-
+        IPayloadBridge bridgeProvider = coreStorage.plainBridgeProvider;
         if (address(bridgeProvider) == address(0)) revert UnsupportedToken();
 
-        bridgeRes = bridgeProvider.bridgeHxroPayload(
-            bytes.concat(inboundPayload.messageHash, sig) // HXRO payload convention always includes the sig
+        IPayloadBridge plainBridge = coreStorage.plainBridgeProvider;
+
+        bridgeRes = plainBridge.bridgeHXROPayload(
+            bytes.concat(payload, sig), // HXRO payload convention always includes the sig
+            msg.sender
         );
 
         coreStorage.nonces[msg.sender]++;

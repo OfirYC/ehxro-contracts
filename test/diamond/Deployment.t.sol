@@ -17,6 +17,7 @@ import "../../src/diamond/facets/diamond-base/DiamondLoupeFacet.sol";
 import "../../src/diamond/facets/diamond-base/OwnershipFacet.sol";
 import "../../src/diamond/facets/core/Execution.sol";
 import "../../src/diamond/facets/core/StorageManager.sol";
+import "../../src/diamond/facets/bridge-providers/mayan/StorageManager.sol";
 import "./HelperContract.sol";
 import "../utils/Forks.t.sol";
 
@@ -31,6 +32,7 @@ contract DiamondTest is Test, HelperContract {
     OwnershipFacet ownerF;
     CoreFacet coreFacet;
     StorageManagerFacet storageManagerFacet;
+    MayanStorageManagerFacet mayanStorageManagerFacet;
 
     //interfaces with Facet ABI connected to diamond address
     IDiamondLoupe ILoupe;
@@ -55,13 +57,15 @@ contract DiamondTest is Test, HelperContract {
         ownerF = new OwnershipFacet();
         coreFacet = new CoreFacet();
         storageManagerFacet = new StorageManagerFacet();
+        mayanStorageManagerFacet = new MayanStorageManagerFacet();
 
         facetNames = [
             "DiamondCutFacet",
             "DiamondLoupeFacet",
             "OwnershipFacet",
             "CoreFacet",
-            "StorageManagerFacet"
+            "StorageManagerFacet",
+            "MayanStorageManagerFacet"
         ];
 
         // diamod arguments
@@ -87,7 +91,7 @@ contract DiamondTest is Test, HelperContract {
         //upgrade diamond with facets
 
         //build cut struct
-        FacetCut[] memory cut = new FacetCut[](4);
+        FacetCut[] memory cut = new FacetCut[](5);
 
         cut[0] = (
             FacetCut({
@@ -117,6 +121,14 @@ contract DiamondTest is Test, HelperContract {
                 facetAddress: address(storageManagerFacet),
                 action: FacetCutAction.Add,
                 functionSelectors: generateSelectors("StorageManagerFacet")
+            })
+        );
+
+        cut[4] = (
+            FacetCut({
+                facetAddress: address(mayanStorageManagerFacet),
+                action: FacetCutAction.Add,
+                functionSelectors: generateSelectors("MayanStorageManagerFacet")
             })
         );
 

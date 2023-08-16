@@ -1,75 +1,160 @@
 /**
  * Bridge provider adapter for Mayanswap
- * Note it should be delegate called to by the execution diamond contract!
+ * ** Note it should be delegate called to by the execution diamond contract!!!!! **
  */
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 import "src/interfaces/IBridgeProvider.sol";
 import {StorageManagerFacet} from "src/diamond/facets/core/StorageManager.sol";
-import {RelayerFees, Criteria, Recepient} from "./Types.sol";
-import "./StorageManager.sol";
+import {MayanData, MayanStorageManagerFacet} from "src/diamond/facets/bridge-providers/mayan/StorageManager.sol";
 import {MayanSwap} from "lib/swap-bridge/src/MayanSwap.sol";
+import {RelayerFees, Criteria, Recepient} from "./Types.sol";
+import {IDataProvider} from "src/interfaces/IDataProvider.sol";
+import {SafeERC20} from "src/libs/SafeERC20.sol";
 
-contract MayanSwapAdapter is IBridgeProvider, MayanStorageManager {
+import "forge-std/console.sol";
+
+contract MayanSwapAdapter is ITokenBridge {
+    using SafeERC20 for IERC20;
+    // ==============
+    //     ERRORS
+    // ==============
+    error InsufficientBalance();
+
+    // ==============
+    //    METHDOS
+    // ==============
     function bridgeHxroPayloadWithTokens(
-        IERC20 token,
+        bytes32 token,
         uint256 amount,
-        bytes memory hxroPayload
+        address msgSender,
+        bytes calldata hxroPayload
     ) external returns (BridgeResult memory bridgeResult) {
-        RelayerFees memory relayerFees = _getRelayerFees();
+        address srcToken = _getAndValidateSrcToken(token, amount);
+
+        MayanData memory mayanData = MayanStorageManagerFacet(address(this))
+            .getData(token);
+
+        MayanSwap mayan = MayanStorageManagerFacet(address(this)).mayanswap();
+
+        IERC20(srcToken).safeApprove(address(mayan), amount);
+
+        uint64 wormholeSequence = _swap(
+            mayan,
+            mayanData,
+            msgSender,
+            token,
+            srcToken,
+            amount,
+            hxroPayload
+        );
+
+        bridgeResult = BridgeResult({
+            id: Bridge.MAYAN_SWAP,
+            trackableHash: abi.encode(wormholeSequence)
+        });
     }
 
     // ==============
     //    INTERNAL
     // ==============
-    function _getRelayerFees()
-        internal
-        view
-        returns (RelayerFees memory relayerFees)
-    {
+    function _swap(
+        MayanSwap mayan,
+        MayanData memory mayanData,
+        address msgSender,
+        bytes32 token,
+        address srcToken,
+        uint256 amount,
+        bytes memory hxroPayload
+    ) internal returns (uint64 wormholeSeq) {
+        wormholeSeq = mayan.swap(
+            _getRelayerFees(mayanData, srcToken),
+            _getRecepient(mayanData, msgSender),
+            token,
+            1, // @TODO Support Non-solana native tokens. Need to either use some Wormhole mapping as source of info or map on our own
+            _gerCriteria(amount, hxroPayload),
+            srcToken,
+            amount
+        );
+    }
+
+    function _getAndValidateSrcToken(
+        bytes32 solToken,
+        uint256 swapAmt
+    ) internal view returns (address srcToken) {
+        srcToken = StorageManagerFacet(address(this)).getSourceToken(solToken);
+
+        if (IERC20(srcToken).balanceOf(address(this)) < swapAmt)
+            revert InsufficientBalance();
+
+        if (srcToken == address(0)) revert UnsupportedToken();
+    }
+
+    function _getRelayerFees(
+        MayanData memory mayanData,
+        address srcToken
+    ) internal view returns (MayanSwap.RelayerFees memory relayerFees) {
         // Get swap fee
-        uint256 requiredSolForSwap = solSwapFee();
+        uint256 requiredSolForSwap = mayanData.solConstantFee;
 
-        uint256 ethSwapFee = StorageManagerFacet(address(this))
-            .getDataProvider()
-            .quoteSOLToETH(requiredSolForSwap);
+        IDataProvider dataProvider = StorageManagerFacet(address(this))
+            .getDataProvider();
 
-        uint256 refundFee = localRefundFee();
+        uint256 tokenSwapFee = dataProvider.quoteSOLToToken(
+            srcToken,
+            requiredSolForSwap
+        );
 
-        relayerFees = RelayerFees({
-            swapFee: uint64(ethSwapFee),
+        uint256 refundFee = dataProvider.quoteETHToToken(
+            srcToken,
+            mayanData.refundFee
+        );
+
+        console.log("Swap Fee", tokenSwapFee);
+
+        // If it's too small we just got to do it like this
+        if (refundFee == 0) refundFee = tokenSwapFee / 2;
+
+        relayerFees = MayanSwap.RelayerFees({
+            swapFee: uint64(tokenSwapFee),
             redeemFee: 0,
             refundFee: uint64(refundFee)
         });
     }
 
     function _gerCriteria(
-        uint256 amountIn
-    ) internal view returns (Criteria memory criteria) {
+        uint256 amountIn,
+        bytes memory hxroPayload
+    ) internal view returns (MayanSwap.Criteria memory criteria) {
         uint256 deadline = block.timestamp + 12 hours;
         uint256 amountOutMin = amountIn - (amountIn / 3);
-        bool unwrap = false; // TODO: Support ETH deposits?
-        uint32 unusedNonce = 0;
 
-        criteria = Criteria({
+        criteria = MayanSwap.Criteria({
             transferDeadline: deadline,
-            swapDeadline: deadlined,
+            swapDeadline: uint64(deadline),
             amountOutMin: uint64(amountOutMin),
-            unwrap: unwrap,
-            nonce: unusedNonce
+            unwrap: false,
+            gasDrop: 0,
+            customPayload: hxroPayload
         });
     }
 
-    // function _getRecepient(
-    //     bytes32 solanaTokenAddr
-    // ) internal view returns (Recepient memory recepient) {
-    //     bytes32 auctionProgram = mayanAuctionProgram();
-    //     bytes32 ata = getMayanAssociatedTokenAccount(solanaTokenAddr);
-    //     uint16 solChainId = solanaChainId();
-    //     recepient = Recepient({
-    //         mayanAddr: ata,
+    function _getRecepient(
+        MayanData memory mayanData,
+        address msgSender
+    ) internal view returns (MayanSwap.Recepient memory recepient) {
+        bytes32 hxroProgram = StorageManagerFacet(address(this))
+            .getSolanaProgram();
 
-    //     })
-    // }
+        recepient = MayanSwap.Recepient({
+            mayanAddr: mayanData.ata,
+            mayanChainId: mayanData.solChainId,
+            auctionAddr: mayanData.mayanSolAuctionProgram,
+            destAddr: hxroProgram,
+            destChainId: mayanData.solChainId,
+            referrer: 0x1111111111111111111111111111111111111111111111111111111111111111,
+            refundAddr: bytes32(uint256(uint160(msgSender)))
+        });
+    }
 }

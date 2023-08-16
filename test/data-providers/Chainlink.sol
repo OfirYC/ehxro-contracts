@@ -44,8 +44,8 @@ contract ChainlinkDataProviderTest is Test {
     // ==============
     //     TESTS
     // ==============
-    function testSolanaQuote() external {
-        uint256 solAmount = 25 * 10 ** 16;
+    function testSolanaQuote(uint64 solAmount) external {
+        // Sol amount wont ever be mind boggingly huge
 
         (, int256 singleSolQuote, , , ) = SOL_USD_PRICEFEED.latestRoundData();
 
@@ -65,4 +65,6 @@ contract ChainlinkDataProviderTest is Test {
             "[ChainlinkDataProviderTest]: Quoted, but supposed USD amount != eth result quote"
         );
     }
+
+    
 }

@@ -5,9 +5,8 @@
 pragma solidity ^0.8.18;
 import {AccessControlled} from "../../AccessControl.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
-import {IBridgeProvider} from "src/interfaces/IBridgeProvider.sol";
+import {ITokenBridge} from "src/interfaces/IBridgeProvider.sol";
 import {IDataProvider} from "src/interfaces/IDataProvider.sol";
-
 import "../../storage/core/Core.sol";
 import "../../types/Main.sol";
 
@@ -22,9 +21,29 @@ contract StorageManagerFacet is AccessControlled {
     function getSupportedTokens()
         external
         view
-        returns (IERC20[] memory supportedTokens)
+        returns (bytes32[] memory supportedTokens)
     {
         supportedTokens = CoreStorageLib.retreive().allSupportedTokens;
+    }
+
+    /**
+     * Get Token struct data of a Solana token
+     * @param solToken - Address of the solana token
+     * @return tokenData - Data of the token
+     */
+    function getTokenData(
+        bytes32 solToken
+    ) external view returns (Token memory tokenData) {
+        tokenData = CoreStorageLib.retreive().tokens[solToken];
+    }
+
+    /**
+     * Get source token of solana token
+     */
+    function getSourceToken(
+        bytes32 destToken
+    ) external view returns (address srcToken) {
+        srcToken = CoreStorageLib.retreive().tokens[destToken].localAddress;
     }
 
     /**
@@ -42,9 +61,9 @@ contract StorageManagerFacet is AccessControlled {
      * Get a token's bridge provider
      */
     function getTokenBridgeProvider(
-        IERC20 token
-    ) external view returns (IBridgeProvider bridgeProvider) {
-        bridgeProvider = CoreStorageLib.retreive().tokenBridgeProviders[token];
+        bytes32 token
+    ) external view returns (ITokenBridge bridgeProvider) {
+        bridgeProvider = CoreStorageLib.retreive().tokens[token].bridgeProvider;
         require(
             address(bridgeProvider) != address(0),
             "Unsupported Bridge Provider"
@@ -65,6 +84,14 @@ contract StorageManagerFacet is AccessControlled {
         nonce = CoreStorageLib.retreive().nonces[user];
     }
 
+    function getPayloadBridgeProvider()
+        external
+        view
+        returns (IPayloadBridge bridgeProvider)
+    {
+        bridgeProvider = CoreStorageLib.retreive().plainBridgeProvider;
+    }
+
     // ==============
     //     WRITE
     // ==============
@@ -73,41 +100,65 @@ contract StorageManagerFacet is AccessControlled {
      * @param token - The token's address
      * @param bridgeProvider - The bridge provider
      */
-    function addTokenBridge(
-        IERC20 token,
-        IBridgeProvider bridgeProvider
+    function addToken(
+        address token,
+        bytes32 solToken,
+        ITokenBridge bridgeProvider
     ) external onlyOwner {
         CoreStorage storage coreStorage = CoreStorageLib.retreive();
 
         require(
-            address(coreStorage.tokenBridgeProviders[token]) == address(0),
+            address(coreStorage.tokens[solToken].bridgeProvider) == address(0),
             "Bridge Provider Already Added. Use updateTokenBridge"
         );
 
-        coreStorage.tokenBridgeProviders[token] = bridgeProvider;
-        coreStorage.allSupportedTokens.push(token);
+        coreStorage.tokens[solToken] = Token({
+            solAddress: solToken,
+            localAddress: token,
+            bridgeProvider: bridgeProvider
+        });
+        coreStorage.allSupportedTokens.push(solToken);
     }
 
-    /**
-     * Update a token's bridge selector
-     * @param token - The token's address
-     * @param bridgeProvider - The bridge provider config
-     */
-    function updateTokenBridge(
-        IERC20 token,
-        IBridgeProvider bridgeProvider
+    function updateTokenBridgeProvider(
+        bytes32 solToken,
+        ITokenBridge bridgeProvider
     ) external onlyOwner {
         CoreStorage storage coreStorage = CoreStorageLib.retreive();
 
         require(
-            address(coreStorage.tokenBridgeProviders[token]) != address(0),
+            address(coreStorage.tokens[solToken].bridgeProvider) != address(0),
             "Bridge Provider Already Added. Use updateTokenBridge"
         );
 
-        coreStorage.tokenBridgeProviders[token] = bridgeProvider;
+        coreStorage.tokens[solToken].bridgeProvider = bridgeProvider;
+    }
+
+    function updateTokenSource(
+        bytes32 solToken,
+        address srcToken
+    ) external onlyOwner {
+        CoreStorage storage coreStorage = CoreStorageLib.retreive();
+
+        require(
+            address(coreStorage.tokens[solToken].localAddress) != address(0),
+            "Bridge Provider Already Added. Use updateTokenBridge"
+        );
+
+        coreStorage.tokens[solToken].localAddress = srcToken;
+    }
+
+    function setPayloadBridgeProvider(
+        IPayloadBridge bridgeProvider
+    ) external onlyOwner {
+        CoreStorageLib.retreive().plainBridgeProvider = bridgeProvider;
     }
 
     function setHxroSolanaProgram(bytes32 solanaProgram) external onlyOwner {
         CoreStorageLib.retreive().solanaProgram = solanaProgram;
+    }
+
+    function setDataProvider(IDataProvider newDataProvider) external onlyOwner {
+        CoreStorageLib.retreive().dataProvider = newDataProvider;
     }
 }
