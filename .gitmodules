@@ -10,3 +10,11 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "lib/chainlink"]
+	path = lib/chainlink
+	url = https://github.com/smartcontractkit/chainlink
+[submodule "lib/swap-bridge"]
+	path = lib/swap-bridge
+	url = https://github.com/mayan-finance/swap-bridge
+[submodule "/Users/ofirsmolinsky/Desktop/ehxro-contracts/lib/swap-bridge"]
+	branch = dev

@@ -1,10 +1,13 @@
 {
   "name": "ehxro-contracts",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/OfirYC/ehxro-contracts",
   "license": "MIT",
   "dependencies": {
-    "@hxronetwork/dexterity-ts": "^1.5.30"
+    "@hxronetwork/dexterity-ts": "^1.5.30",
+    "@mayanfinance/swap-sdk": "^4.2.2",
+    "ethers": "^6.6.1"
   }
 }

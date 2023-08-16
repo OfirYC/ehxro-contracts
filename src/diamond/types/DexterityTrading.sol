@@ -107,6 +107,8 @@ struct DepositFundsAccounts {
     bytes32 whitelist_ata_acct;
 }
 
+
+
 struct DepositFundsParams {
     Fractional quantity;
 }

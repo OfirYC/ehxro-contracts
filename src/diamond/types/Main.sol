@@ -6,19 +6,20 @@ import "src/interfaces/IERC20.sol";
  */
 
 struct InboundPayload {
-    IERC20 token;
+    bytes32 solToken;
     uint256 amount;
     bytes messageHash;
 }
 
-enum SupportedBridges {
+enum Bridge {
     WORMHOLE,
+    MAYAN_SWAP,
     VERY_REAL_BRIDGE
 }
 
 struct BridgeResult {
-    SupportedBridges id;
-    bytes res;
+    Bridge id;
+    bytes trackableHash;
 }
 
 error NotSigOwner();
@@ -27,4 +28,4 @@ error UnsupportedToken();
 
 error InvalidNonce();
 
-error BridgeFailed(string revertReason);
+error BridgeFailed(bytes revertReason);

@@ -6,14 +6,18 @@ pragma solidity ^0.8.18;
 import "src/diamond/types/Main.sol";
 import "./IERC20.sol";
 
-interface IBridgeProvider {
-    function bridgeHxroPayload(
-        bytes memory hxroPayload
-    ) external returns (BridgeResult memory);
-
+interface ITokenBridge {
     function bridgeHxroPayloadWithTokens(
-        IERC20 token,
+        bytes32 destToken,
         uint256 amount,
-        bytes memory hxroPayload
+        address msgSender,
+        bytes calldata hxroPayload
+    ) external returns (BridgeResult memory);
+}
+
+interface IPayloadBridge {
+    function bridgeHXROPayload(
+        bytes calldata hxroPayload,
+        address msgSender
     ) external returns (BridgeResult memory);
 }
